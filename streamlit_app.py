@@ -2,6 +2,11 @@ import streamlit as st
 import pdfplumber
 import pandas as pd
 import io
+import re
+
+# Fonction pour vérifier si une chaîne de caractères correspond au format d'une date (par exemple, JJ-MM-AAAA)
+def is_valid_date(date_str):
+    return bool(re.match(r"\d{2}-\d{2}-\d{4}", date_str))
 
 # Fonction pour extraire les transactions d'un fichier PDF
 def extract_data_from_pdf(pdf_file):
@@ -14,9 +19,14 @@ def extract_data_from_pdf(pdf_file):
                 # Vérifie si la ligne contient une date et un montant (adapté selon la structure des fichiers PDF)
                 if any(char.isdigit() for char in line) and ('EUR' in line or '-' in line):
                     parts = line.split()
+                    date = parts[0]
+                    
+                    # Vérifier si la date extraite est valide
+                    if not is_valid_date(date):
+                        continue  # Ignorer cette ligne si le champ date n'est pas valide
+                    
                     try:
-                        date = parts[0]  # Extraire la date
-                        libelle = " ".join(parts[1:-1])  # Extraire le libellé
+                        libelle = " ".join(parts[1:-1])  # Exclut la date du libellé
                         montant_str = parts[-1].replace("EUR", "").strip()
                         montant = float(montant_str.replace(",", "."))
                         transactions.append({"Date": date, "Libelé": libelle, "Montant": montant})
