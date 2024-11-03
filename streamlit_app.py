@@ -26,7 +26,8 @@ def extract_data_from_pdf(pdf_file):
                         continue  # Ignorer cette ligne si le champ date n'est pas valide
                     
                     try:
-                        libelle = " ".join(parts[1:-1])  # Exclut la date du libellé
+                        # Exclut la date du libellé en prenant seulement les éléments après `parts[0]`
+                        libelle = " ".join(parts[1:-1])  
                         montant_str = parts[-1].replace("EUR", "").strip()
                         montant = float(montant_str.replace(",", "."))
                         transactions.append({"Date": date, "Libelé": libelle, "Montant": montant})
