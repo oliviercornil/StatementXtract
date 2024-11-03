@@ -1,9 +1,20 @@
 import streamlit as st
 
 st.title("🎈 StatementXtract")
-st.write(
-    "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
-)
+st.write("""
+# StatementXtract
+Bienvenue sur **StatementXtract**, l'application qui simplifie la conversion de vos relevés de carte de crédit PDF en fichiers Excel.
+
+### Fonctionnalités :
+- Importez votre relevé de carte de crédit au format PDF.
+- StatementXtract extrait automatiquement les informations de date, libellé et montant pour chaque transaction.
+- Téléchargez le fichier Excel généré pour une gestion simplifiée de vos dépenses.
+
+**Conseil :** Assurez-vous que le fichier PDF suit un format standard pour une extraction optimale des données.
+
+Commencez dès maintenant en téléchargeant votre fichier PDF !
+""")
+
 import streamlit as st
 import pdfplumber
 import pandas as pd
