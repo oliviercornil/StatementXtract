@@ -60,10 +60,17 @@ if uploaded_pdf is not None:
         st.dataframe(df)
 
         # Téléchargement du fichier Excel
+        import io
+
         @st.cache_data
         def convert_df_to_excel(df):
-            # Convertir le DataFrame en fichier Excel
-            return df.to_excel(index=False, encoding='utf-8')
+            output = io.BytesIO()
+            # Écrire le DataFrame dans un fichier Excel en mémoire
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False)
+            # Revenir au début du fichier pour lecture
+            output.seek(0)
+            return output
 
         excel_data = convert_df_to_excel(df)
         st.download_button(
@@ -72,5 +79,6 @@ if uploaded_pdf is not None:
             file_name="transactions_carte_credit.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
     else:
         st.error("Aucune transaction n'a été trouvée dans le fichier PDF.")
