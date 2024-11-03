@@ -16,7 +16,7 @@ def extract_data_from_pdf(pdf_file):
                     parts = line.split()
                     try:
                         date = parts[0]  # Extraire la date
-                        libelle = " ".join(parts[1:-1])  # Extraire le libellé
+                        libelle = " ".join(parts[1:-1])  # Exclut la date du libellé
                         montant_str = parts[-1].replace("EUR", "").strip()
                         montant = float(montant_str.replace(",", "."))
                         transactions.append({"Date": date, "Libelé": libelle, "Montant": montant})
