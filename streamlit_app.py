@@ -75,7 +75,7 @@ Bienvenue sur **StatementXtract**, l'application qui simplifie la conversion de 
 - Téléchargez le fichier Excel généré.
 - Importez le fichier Excel dans le journal de la carte de crédit dans Odoo pour une gestion simplifiée de vos dépenses.
 
-**Conseil :** Assurez-vous que le fichier PDF suit un format standard pour une extraction optimale des données.
+**Conseil :** Assurez-vous que le fichier PDF suit un format standard pour une importation optimale des données dans Odoo.
 
 Commencez dès maintenant en téléchargeant votre fichier PDF !
 """)
