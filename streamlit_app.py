@@ -95,6 +95,10 @@ if uploaded_pdf is not None:
         st.write("Aperçu des données extraites :")
         st.dataframe(df)
 
+        # Calculer et afficher le total des dépenses
+        total_depenses = df['Montant'].sum()
+        st.write(f"**Total des dépenses :** {total_depenses:.2f} EUR")
+
         # Convertir en Excel et proposer le téléchargement
         excel_data = convert_df_to_excel(df)
         st.download_button(
