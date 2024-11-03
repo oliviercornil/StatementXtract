@@ -1,24 +1,9 @@
 import streamlit as st
-
-st.title("🎈 StatementXtract")
-st.write("""
-# StatementXtract
-Bienvenue sur **StatementXtract**, l'application qui simplifie la conversion de vos relevés de carte de crédit PDF en fichiers Excel.
-
-### Fonctionnalités :
-- Importez votre relevé de carte de crédit au format PDF.
-- StatementXtract extrait automatiquement les informations de date, libellé et montant pour chaque transaction.
-- Téléchargez le fichier Excel généré pour une gestion simplifiée de vos dépenses.
-
-**Conseil :** Assurez-vous que le fichier PDF suit un format standard pour une extraction optimale des données.
-
-Commencez dès maintenant en téléchargeant votre fichier PDF !
-""")
-
-import streamlit as st
 import pdfplumber
 import pandas as pd
+import io
 
+# Fonction pour extraire les transactions d'un fichier PDF
 def extract_data_from_pdf(pdf_file):
     transactions = []
     with pdfplumber.open(pdf_file) as pdf:
@@ -26,52 +11,48 @@ def extract_data_from_pdf(pdf_file):
             text = page.extract_text()
             lines = text.split("\n")
             for line in lines:
-                # Vérification de base pour s'assurer que la ligne contient une date et un montant
-                if any(char.isdigit() for char in line) and 'EUR' in line:
+                # Vérifie si la ligne contient une date et un montant (adapté selon la structure des fichiers PDF)
+                if any(char.isdigit() for char in line) and ('EUR' in line or '-' in line):
                     parts = line.split()
-                    date = parts[0]
-                    libelle = " ".join(parts[1:-1])
-                    montant_str = parts[-1].replace("EUR", "").strip()
-                    
-                    # Bloc try-except pour gérer les erreurs de conversion
                     try:
+                        date = parts[0]  # Extraire la date
+                        libelle = " ".join(parts[1:-1])  # Extraire le libellé
+                        montant_str = parts[-1].replace("EUR", "").strip()
                         montant = float(montant_str.replace(",", "."))
                         transactions.append({"Date": date, "Libelé": libelle, "Montant": montant})
                     except ValueError:
-                        # Affiche un message d'erreur pour le montant non convertible
-                        print(f"Impossible de convertir le montant : {montant_str}")
-                        
+                        # Ignorer les lignes qui ne correspondent pas au format attendu
+                        continue
     return transactions
 
-# Interface Streamlit pour uploader le fichier PDF
-st.title("Transformation du relevé de carte de crédit en fichier Excel")
-uploaded_pdf = st.file_uploader("Téléchargez le fichier PDF du relevé de carte", type="pdf")
+# Fonction pour convertir les données en fichier Excel
+@st.cache_data
+def convert_df_to_excel(df):
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False)
+    output.seek(0)
+    return output
+
+# Interface de l'application
+st.title("Extraction de Dépenses de Carte de Crédit en Excel")
+uploaded_pdf = st.file_uploader("Téléchargez le fichier PDF de dépenses de carte de crédit", type="pdf")
 
 if uploaded_pdf is not None:
-    # Extraire les données du fichier PDF
+    # Extraire les données du PDF
     data = extract_data_from_pdf(uploaded_pdf)
 
     if data:
-        # Convertir les données en DataFrame
+        # Convertir les données en DataFrame et filtrer les lignes indésirables
         df = pd.DataFrame(data)
+        # Exclusion de certaines lignes non pertinentes
+        df = df[~df['Libelé'].str.contains("Limited'utilisation|Soldeprécédent|DOMICILIATION|Décomptevia", case=False)]
         
-        # Afficher un aperçu des données dans Streamlit
-        st.write("Aperçu des données:")
+        # Afficher les données
+        st.write("Aperçu des données extraites :")
         st.dataframe(df)
 
-        # Téléchargement du fichier Excel
-        import io
-
-        @st.cache_data
-        def convert_df_to_excel(df):
-            output = io.BytesIO()
-            # Écrire le DataFrame dans un fichier Excel en mémoire
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                df.to_excel(writer, index=False)
-            # Revenir au début du fichier pour lecture
-            output.seek(0)
-            return output
-
+        # Convertir en Excel et proposer le téléchargement
         excel_data = convert_df_to_excel(df)
         st.download_button(
             label="Télécharger le fichier Excel",
@@ -79,6 +60,5 @@ if uploaded_pdf is not None:
             file_name="transactions_carte_credit.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
     else:
-        st.error("Aucune transaction n'a été trouvée dans le fichier PDF.")
+        st.error("Aucune transaction valide n'a été trouvée dans le fichier PDF.")
