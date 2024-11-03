@@ -67,14 +67,15 @@ def convert_df_to_excel(df):
 # Interface de l'application
 st.title("🎈 StatementXtract")
 st.write("""
-Bienvenue sur **StatementXtract**, l'application qui simplifie la conversion de vos relevés de carte de crédit PDF en fichiers Excel.
+Bienvenue sur **StatementXtract**, l'application qui simplifie la conversion de vos relevés de carte de crédit PDF en fichiers Excel pour les importer dans Odoo.
 
 ### Fonctionnalités :
 - Importez votre relevé de carte de crédit au format PDF.
 - StatementXtract extrait automatiquement les informations de date, libellé et montant pour chaque transaction.
-- Téléchargez le fichier Excel généré pour une gestion simplifiée de vos dépenses.
+- Téléchargez le fichier Excel généré.
+- Importez le fichier Excel dans le journal de la carte de crédit dans Odoo pour une gestion simplifiée de vos dépenses.
 
-**Conseil :** Assurez-vous que le fichier PDF suit un format standard pour une extraction optimale des données.
+**Conseil :** Assurez-vous que le fichier PDF suit un format standard pour une importation optimale des données dans Odoo.
 
 Commencez dès maintenant en téléchargeant votre fichier PDF !
 """)
