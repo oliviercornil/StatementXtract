@@ -19,23 +19,28 @@ import streamlit as st
 import pdfplumber
 import pandas as pd
 
-# Fonction pour extraire les données du PDF
 def extract_data_from_pdf(pdf_file):
     transactions = []
     with pdfplumber.open(pdf_file) as pdf:
-        # Parcourir les pages du PDF
         for page in pdf.pages:
             text = page.extract_text()
-            # Rechercher les lignes contenant les transactions (ici, cela doit être adapté selon la structure du fichier PDF)
             lines = text.split("\n")
             for line in lines:
-                # Exemple : vérifier si une ligne contient une date et un montant, cela peut nécessiter des ajustements
+                # Vérification de base pour s'assurer que la ligne contient une date et un montant
                 if any(char.isdigit() for char in line) and 'EUR' in line:
                     parts = line.split()
                     date = parts[0]
                     libelle = " ".join(parts[1:-1])
-                    montant = parts[-1].replace("EUR", "").strip()
-                    transactions.append({"Date": date, "Libelé": libelle, "Montant": float(montant.replace(",", "."))})
+                    montant_str = parts[-1].replace("EUR", "").strip()
+                    
+                    # Bloc try-except pour gérer les erreurs de conversion
+                    try:
+                        montant = float(montant_str.replace(",", "."))
+                        transactions.append({"Date": date, "Libelé": libelle, "Montant": montant})
+                    except ValueError:
+                        # Affiche un message d'erreur pour le montant non convertible
+                        print(f"Impossible de convertir le montant : {montant_str}")
+                        
     return transactions
 
 # Interface Streamlit pour uploader le fichier PDF
