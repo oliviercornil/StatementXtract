@@ -4,15 +4,16 @@ import pandas as pd
 import io
 import re
 
-# Fonction pour vérifier si une chaîne correspond au format d'une date (par exemple, JJ-MM-AAAA)
+# Fonction pour vérifier si une chaîne correspond au format d'une date (par exemple, JJ-MM-AAAA ou JJ/MM/AAAA)
 def is_valid_date(date_str):
-    return bool(re.match(r"\d{2}-\d{2}-\d{4}", date_str))
+    return bool(re.match(r"\d{2}[-/]\d{2}[-/]\d{4}", date_str))
 
 # Fonction pour extraire les transactions du fichier PDF
 def extract_data_from_pdf(pdf_file):
     transactions = []
-    date_pattern = r"\d{2}-\d{2}-\d{4}"
-    montant_pattern = r"-?\d+,\d{2}"
+    # Adapter le motif pour reconnaître les formats de dates et de montants possibles
+    date_pattern = r"\d{2}[-/]\d{2}[-/]\d{4}"
+    montant_pattern = r"-?\d+,\d{2}|\d+\.\d{2}"
 
     with pdfplumber.open(pdf_file) as pdf:
         for page in pdf.pages:
@@ -25,7 +26,7 @@ def extract_data_from_pdf(pdf_file):
                         # Extraire toutes les dates dans la ligne
                         dates_in_line = re.findall(date_pattern, line)
                         if dates_in_line:
-                            date = dates_in_line[0]  # Première date comme date de transaction
+                            date = dates_in_line[0]  # Première date trouvée comme date de transaction
                         else:
                             continue  # Ignorer si aucune date n'est trouvée
 
@@ -36,8 +37,8 @@ def extract_data_from_pdf(pdf_file):
                         # Extraire le montant
                         montant_match = re.search(montant_pattern, line)
                         if montant_match:
-                            montant_str = montant_match.group()
-                            montant = float(montant_str.replace(",", "."))
+                            montant_str = montant_match.group().replace(",", ".")
+                            montant = float(montant_str)
                         else:
                             continue  # Ignorer si aucun montant n'est trouvé
 
@@ -47,7 +48,7 @@ def extract_data_from_pdf(pdf_file):
                         line_without_montant = re.sub(montant_pattern, '', line_without_dates)
                         libelle = line_without_montant.strip()
 
-                        # Supprimer les espaces multiples et les caractères spéciaux
+                        # Nettoyer le libellé pour supprimer les espaces multiples et les caractères spéciaux
                         libelle = re.sub(' +', ' ', libelle)
                         libelle = libelle.strip("-•: ")
 
