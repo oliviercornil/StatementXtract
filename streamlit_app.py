@@ -4,37 +4,28 @@ import pandas as pd
 import io
 import re
 
-# Fonction pour vérifier si une chaîne correspond au format d'une date (par exemple, JJ-MM-AAAA ou JJ/MM/AAAA)
+# Fonction pour vérifier si une chaîne correspond au format d'une date (par exemple, JJ-MM-AAAA)
 def is_valid_date(date_str):
-    return bool(re.match(r"\d{2}[-/]\d{2}[-/]\d{4}", date_str))
+    return bool(re.match(r"\d{2}-\d{2}-\d{4}", date_str))
 
 # Fonction pour extraire les transactions du fichier PDF
 def extract_data_from_pdf(pdf_file):
     transactions = []
-    # Adapter le motif pour reconnaître les formats de dates et de montants possibles
-    date_pattern = r"\d{2}[-/]\d{2}[-/]\d{4}"
-    montant_pattern = r"-?\d+,\d{2}|\d+\.\d{2}"
+    date_pattern = r"\d{2}-\d{2}-\d{4}"
+    montant_pattern = r"-?\d+,\d{2}"
 
     with pdfplumber.open(pdf_file) as pdf:
-        # Commencer à partir de la deuxième page pour ignorer la page de "Solde précédent"
-        for page_num, page in enumerate(pdf.pages):
-            if page_num == 0:  # Ignore la première page
-                continue
-
+        for page in pdf.pages:
             text = page.extract_text()
             if text:
                 lines = text.split("\n")
                 for line in lines:
-                    # Ignorer les lignes contenant "Solde précédent"
-                    if "Solde précédent" in line:
-                        continue
-
                     # Vérifier si la ligne contient un montant
                     if re.search(montant_pattern, line):
                         # Extraire toutes les dates dans la ligne
                         dates_in_line = re.findall(date_pattern, line)
                         if dates_in_line:
-                            date = dates_in_line[0]  # Première date trouvée comme date de transaction
+                            date = dates_in_line[0]  # Première date comme date de transaction
                         else:
                             continue  # Ignorer si aucune date n'est trouvée
 
@@ -45,8 +36,8 @@ def extract_data_from_pdf(pdf_file):
                         # Extraire le montant
                         montant_match = re.search(montant_pattern, line)
                         if montant_match:
-                            montant_str = montant_match.group().replace(",", ".")
-                            montant = float(montant_str)
+                            montant_str = montant_match.group()
+                            montant = float(montant_str.replace(",", "."))
                         else:
                             continue  # Ignorer si aucun montant n'est trouvé
 
@@ -56,7 +47,7 @@ def extract_data_from_pdf(pdf_file):
                         line_without_montant = re.sub(montant_pattern, '', line_without_dates)
                         libelle = line_without_montant.strip()
 
-                        # Nettoyer le libellé pour supprimer les espaces multiples et les caractères spéciaux
+                        # Supprimer les espaces multiples et les caractères spéciaux
                         libelle = re.sub(' +', ' ', libelle)
                         libelle = libelle.strip("-•: ")
 
@@ -74,17 +65,16 @@ def convert_df_to_excel(df):
     return output
 
 # Interface de l'application
-st.title("💳 StatementXtract")
+st.title("🎈 StatementXtract")
 st.write("""
-Bienvenue sur **StatementXtract**, l'application qui simplifie la conversion de vos relevés de carte de crédit PDF en fichiers Excel pour les importer dans Odoo.
+Bienvenue sur **StatementXtract**, l'application qui simplifie la conversion de vos relevés de carte de crédit PDF en fichiers Excel.
 
 ### Fonctionnalités :
 - Importez votre relevé de carte de crédit au format PDF.
 - StatementXtract extrait automatiquement les informations de date, libellé et montant pour chaque transaction.
-- Téléchargez le fichier Excel généré.
-- Importez le fichier Excel dans le journal de la carte de crédit dans Odoo pour une gestion simplifiée de vos dépenses.
+- Téléchargez le fichier Excel généré pour une gestion simplifiée de vos dépenses.
 
-**Conseil :** Assurez-vous que le fichier PDF suit un format standard pour une importation optimale des données dans Odoo.
+**Conseil :** Assurez-vous que le fichier PDF suit un format standard pour une extraction optimale des données.
 
 Commencez dès maintenant en téléchargeant votre fichier PDF !
 """)
