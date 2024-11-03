@@ -16,11 +16,19 @@ def extract_data_from_pdf(pdf_file):
     montant_pattern = r"-?\d+,\d{2}|\d+\.\d{2}"
 
     with pdfplumber.open(pdf_file) as pdf:
-        for page in pdf.pages:
+        # Commencer à partir de la deuxième page pour ignorer la page de "Solde précédent"
+        for page_num, page in enumerate(pdf.pages):
+            if page_num == 0:  # Ignore la première page
+                continue
+
             text = page.extract_text()
             if text:
                 lines = text.split("\n")
                 for line in lines:
+                    # Ignorer les lignes contenant "Solde précédent"
+                    if "Solde précédent" in line:
+                        continue
+
                     # Vérifier si la ligne contient un montant
                     if re.search(montant_pattern, line):
                         # Extraire toutes les dates dans la ligne
